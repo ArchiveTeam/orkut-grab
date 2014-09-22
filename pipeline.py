@@ -130,7 +130,7 @@ class MoveFiles(SimpleTask):
 
     def process(self, item):
         # NEW for 2014! Check if wget was compiled with zlib support
-        if os.path.exists("%(item_dir)s/%(warc_file_base)s.warc"):
+        if os.path.exists("%(item_dir)s/%(warc_file_base)s.warc" % item):
             raise Exception('Please compile wget with zlib support!')
 
         os.rename("%(item_dir)s/%(warc_file_base)s.warc.gz" % item,
