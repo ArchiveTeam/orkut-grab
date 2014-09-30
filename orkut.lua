@@ -57,7 +57,7 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
     if string.match(url, item_value) then
       html = read_file(file)
       for customurl in string.match(html, '"(http[s]?://[^"]+)"') do
-        if string.match(customurl, "/..item_value)
+        if string.match(customurl, "/"..item_value)
           or string.match(customurl, "/imgs/") then
           if downloaded[customurl] ~= true then
             table.insert(urls, { url=customurl })
@@ -65,7 +65,7 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
         end
       end
       for customurlnf in string.match(html, '"(/[^"]+)"') do
-        if string.match(customurl, "/..item_value)
+        if string.match(customurl, "/"..item_value)
           or string.match(customurl, "/imgs/") then
           local base = "http://orkut.google.com"
           local customurl = base..customurlnf
@@ -75,10 +75,20 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
         end
       end
       for customurlnf1 in string.match(html, '"([^%.]+%.html)"') do
-        if string.match(customurl, "item_value)
+        if string.match(customurl, item_value)
           or string.match(customurl, "imgs/") then
           local base = "http://orkut.google.com/"
           local customurl = base..customurlnf1
+          if downloaded[customurl] ~= true then
+            table.insert(urls, { url=customurl })
+          end
+        end
+      end
+      for customurlnf2 in string.match(html, 'href="([^"]+)"') do
+        if string.match(customurl, item_value)
+          or string.match(customurl, "imgs/") then
+          local base = "http://orkut.google.com/"
+          local customurl = base..customurlnf2
           if downloaded[customurl] ~= true then
             table.insert(urls, { url=customurl })
           end
