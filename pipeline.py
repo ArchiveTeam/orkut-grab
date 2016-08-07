@@ -5,6 +5,7 @@ import hashlib
 import os.path
 import random
 from seesaw.config import realize, NumberConfigValue
+from seesaw.externalprocess import ExternalProcess
 from seesaw.item import ItemInterpolation, ItemValue
 from seesaw.task import SimpleTask, LimitConcurrent
 from seesaw.tracker import GetItemFromTracker, PrepareStatsForTracker, \
@@ -24,8 +25,8 @@ from seesaw.util import find_executable
 
 
 # check the seesaw version
-if StrictVersion(seesaw.__version__) < StrictVersion("0.1.5"):
-    raise Exception("This pipeline needs seesaw version 0.1.5 or higher.")
+if StrictVersion(seesaw.__version__) < StrictVersion("0.8.5"):
+    raise Exception("This pipeline needs seesaw version 0.8.5 or higher.")
 
 
 ###########################################################################
@@ -36,7 +37,7 @@ if StrictVersion(seesaw.__version__) < StrictVersion("0.1.5"):
 # 2. prints the required version string
 WGET_LUA = find_executable(
     "Wget+Lua",
-    ["GNU Wget 1.14.lua.20130523-9a5c"],
+    ["GNU Wget 1.14.lua.20130523-9a5c", "GNU Wget 1.14.lua.20160530-955376b"],
     [
         "./wget-lua",
         "./wget-lua-warrior",
@@ -57,7 +58,7 @@ if not WGET_LUA:
 #
 # Update this each time you make a non-cosmetic change.
 # It will be added to the WARC files and reported to the tracker.
-VERSION = "20140930.01"
+VERSION = "20160807.01"
 USER_AGENT = 'ArchiveTeam'
 TRACKER_ID = 'orkut'
 TRACKER_HOST = 'tracker.archiveteam.org'
@@ -166,6 +167,7 @@ class WgetArgs(object):
             WGET_LUA,
             "-U", USER_AGENT,
             "-nv",
+            "--no-cookies",
             "--lua-script", "orkut.lua",
             "-o", ItemInterpolation("%(item_dir)s/wget.log"),
             "--no-check-certificate",
@@ -178,7 +180,7 @@ class WgetArgs(object):
             "--page-requisites",
             "--timeout", "30",
             "--tries", "inf",
-            "--domains", "orkut.google.com",
+            "--domains", "google.com",
             "--span-hosts",
             "--waitretry", "30",
             "--warc-file", ItemInterpolation("%(item_dir)s/%(warc_file_base)s"),
@@ -194,10 +196,10 @@ class WgetArgs(object):
         item['item_type'] = item_type
         item['item_value'] = item_value
         
-        assert item_type in ("page")
-        
-        if item_type == 'page':
-            wget_args.append('http://orkut.google.com/{0}'.format(item_value))
+        assert item_type in ('10communities')
+
+        if item_type == '10communities':
+            wget_args += ['http://orkut.google.com/c{0}{1}.html'.format(item_value, d) for d in string.digits]
         else:
             raise Exception('Unknown item')
         
@@ -218,9 +220,9 @@ class WgetArgs(object):
 project = Project(
     title="orkut",
     project_html="""
-        <img class="project-logo" alt="Project logo" src="http://archiveteam.org/images/0/08/Orkut-logo.png" height="50px" title=""/>
+        <img class="project-logo" alt="Project logo" src="http://archiveteam.org/images/thumb/3/34/Orkut_logo.png/320px-Orkut_logo.png" height="50px" title=""/>
         <h2>orkut.google.com <span class="links"><a href="http://orkut.google.com/">Website</a> &middot; <a href="http://tracker.archiveteam.org/orkut/">Leaderboard</a></span></h2>
-        <p>Archiving all accounts and forums from Orkut.</p>
+        <p>Archiving all posts on Orkut.</p>
     """
 )
 
@@ -232,7 +234,7 @@ pipeline = Pipeline(
     WgetDownload(
         WgetArgs(),
         max_tries=2,
-        accept_on_exit_code=[0, 8],
+        accept_on_exit_code=[0, 4, 8],
         env={
             "item_dir": ItemValue("item_dir"),
             "item_value": ItemValue("item_value"),
