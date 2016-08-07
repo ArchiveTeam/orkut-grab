@@ -74,6 +74,8 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
       check(string.match(url, "^(https?:)")..newurl)
     elseif string.match(newurl, "^/") then
       check(string.match(url, "^(https?://[^/]+)")..newurl)
+    elseif string.match(newurl, "^c"..item_value.."[0-9][^0-9].+%.html") then
+      check(string.match(url, "^(https?://.+/)")..newurl)
     end
   end
 
@@ -106,6 +108,9 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
       checknewshorturl(newurl)
     end
     for newurl in string.gmatch(html, 'href="([^"]+)"') do
+      checknewshorturl(newurl)
+    end
+    for newurl in string.gmatch(html, 'fetchReply%("([^"]+)') do
       checknewshorturl(newurl)
     end
   end
